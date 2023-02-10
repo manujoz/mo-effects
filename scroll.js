@@ -11,7 +11,7 @@ const MoScroll = {
             currentTime = 0,
             increment = 20;
 
-        this._animate(element, duration, start, change, currentTime, increment);
+        MoScroll._animate(element, duration, start, change, currentTime, increment);
     },
 
     /**
@@ -30,7 +30,7 @@ const MoScroll = {
             currentTime = 0,
             increment = 20;
 
-        this._animate(element, duration, start, change, currentTime, increment);
+        MoScroll._animate(element, duration, start, change, currentTime, increment);
     },
 
     /**
@@ -44,7 +44,7 @@ const MoScroll = {
             currentTime = 0,
             increment = 20;
 
-        this._animate(element, duration, start, change, currentTime, increment);
+        MoScroll._animate(element, duration, start, change, currentTime, increment);
     },
 
     /**
@@ -58,13 +58,13 @@ const MoScroll = {
             currentTime = 0,
             increment = 20;
 
-        this._animate(element, duration, start, change, currentTime, increment);
+        MoScroll._animate(element, duration, start, change, currentTime, increment);
     },
 
     _animate(element, duration, start, change, currentTime, increment) {
         currentTime += increment;
 
-        let val = this._easeInOutQuad(currentTime, start, change, duration);
+        let val = MoScroll._easeInOutQuad(currentTime, start, change, duration);
 
         if (element === window) {
             window.scroll(0, val);
@@ -73,12 +73,9 @@ const MoScroll = {
         }
 
         if (currentTime < duration) {
-            setTimeout(
-                function () {
-                    this._animate(element, duration, start, change, currentTime, increment);
-                }.bind(this),
-                increment
-            );
+            setTimeout(() => {
+                MoScroll._animate(element, duration, start, change, currentTime, increment);
+            }, increment);
         }
     },
 

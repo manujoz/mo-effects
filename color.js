@@ -62,7 +62,7 @@ const MoColors = {
      * @returns {string}
      */
     toRGB: function (color) {
-        let type = this.type(color);
+        let type = MoColors.type(color);
 
         // Compronamos que sea un color válido
 
@@ -85,7 +85,7 @@ const MoColors = {
 
         if (type === `RGBA`) {
             type = `HEX`;
-            color = this.toHEX(color);
+            color = MoColors.toHEX(color);
         }
 
         // De Hexadecimal a RGB
@@ -139,9 +139,9 @@ const MoColors = {
 
                 m1 = l * 2 - m2;
                 hue = h / 360;
-                r = Math.round(this._hue2rgb(m1, m2, hue + 1 / 3));
-                g = Math.round(this._hue2rgb(m1, m2, hue));
-                b = Math.round(this._hue2rgb(m1, m2, hue - 1 / 3));
+                r = Math.round(MoColors._hue2rgb(m1, m2, hue + 1 / 3));
+                g = Math.round(MoColors._hue2rgb(m1, m2, hue));
+                b = Math.round(MoColors._hue2rgb(m1, m2, hue - 1 / 3));
             }
 
             return `rgb(` + r + `,` + g + `,` + b + `)`;
@@ -158,7 +158,7 @@ const MoColors = {
      * @returns {string}
      */
     toRGBA: function (color, trans) {
-        let type = this.type(color);
+        let type = MoColors.type(color);
 
         // Compronamos que sea un color válido
 
@@ -181,7 +181,7 @@ const MoColors = {
 
         if (type === `RGB`) {
             type = `HEX`;
-            color = this.toHEX(color);
+            color = MoColors.toHEX(color);
         }
 
         if (!trans) {
@@ -237,9 +237,9 @@ const MoColors = {
 
                 m1 = l * 2 - m2;
                 hue = h / 360;
-                r = Math.round(this._hue2rgb(m1, m2, hue + 1 / 3));
-                g = Math.round(this._hue2rgb(m1, m2, hue));
-                b = Math.round(this._hue2rgb(m1, m2, hue - 1 / 3));
+                r = Math.round(MoColors._hue2rgb(m1, m2, hue + 1 / 3));
+                g = Math.round(MoColors._hue2rgb(m1, m2, hue));
+                b = Math.round(MoColors._hue2rgb(m1, m2, hue - 1 / 3));
             }
 
             return `rgba(` + r + `,` + g + `,` + b + `,` + trans + `)`;
@@ -257,7 +257,7 @@ const MoColors = {
     toHSL: function (color) {
         "use strict";
 
-        let type = this.type(color);
+        let type = MoColors.type(color);
 
         // Compronamos que sea un color válido
 
@@ -280,7 +280,7 @@ const MoColors = {
 
         if (type !== `RGB`) {
             type = `RGB`;
-            color = this.toRGB(color);
+            color = MoColors.toRGB(color);
         }
 
         // Obtenemos los colores separados
@@ -343,7 +343,7 @@ const MoColors = {
     toHSLA: function (color, trans) {
         "use strict";
 
-        let type = this.type(color);
+        let type = MoColors.type(color);
 
         // Compronamos que sea un color válido
 
@@ -366,7 +366,7 @@ const MoColors = {
 
         if (type !== `RGB`) {
             type = `RGB`;
-            color = this.toRGB(color);
+            color = MoColors.toRGB(color);
         }
 
         if (!trans) {
@@ -432,7 +432,7 @@ const MoColors = {
     toHEX: function (color) {
         "use strict";
 
-        let type = this.type(color);
+        let type = MoColors.type(color);
 
         // Compronamos que sea un color válido
 
@@ -454,7 +454,7 @@ const MoColors = {
         // Si no es rgb lo convertimos
 
         if (type !== `RGB` && type !== `RGBA`) {
-            color = this.toRGB(color);
+            color = MoColors.toRGB(color);
         }
 
         // Convertimos el color
@@ -483,7 +483,7 @@ const MoColors = {
      * @return	{"light"|"dark"}
      */
     contrast: function (color) {
-        let type = this.type(color);
+        let type = MoColors.type(color);
 
         // Compronamos que sea un color válido
 
@@ -494,7 +494,7 @@ const MoColors = {
         // Si no es hexadecimal lo CONVERTIMOS
 
         if (type !== `RGB`) {
-            color = this.toRGB(color);
+            color = MoColors.toRGB(color);
         }
 
         // Sacamos los colores red, green, blue
