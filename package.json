@@ -1,0 +1,15 @@
+{
+    "version": "1.0.0",
+    "name": "mo-effects",
+    "description": "Method and functions to add effects and animations to elements",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "author": {
+        "name": "Manu Overa",
+        "email": "manu.overa@gmail.com"
+    },
+    "main": "index.js",
+    "license": "ISC"
+}
