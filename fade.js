@@ -6,9 +6,9 @@ const MoFade = {
      */
     toggle(el, settings = { speed: 400, effect: `ease` }, func = null) {
         if (el.offsetHeight === 0) {
-            this.in(el, settings, func);
+            MoFade.in(el, settings, func);
         } else {
-            this.out(el, settings, func);
+            MoFade.out(el, settings, func);
         }
     },
 
@@ -40,12 +40,11 @@ const MoFade = {
         }
 
         // Ajustamos la configuración
-
-        settings = this._setSettings(settings);
+        settings = MoFade._setSettings(settings);
 
         // Cogemos los estilos por defecto del elemento
 
-        let style = this._getStyles(el);
+        let style = MoFade._getStyles(el);
 
         // Preparamos el elemento para aparecer
 
@@ -71,13 +70,13 @@ const MoFade = {
             };
 
             setTimeout(function () {
-                func.call(this, response);
+                func.call(el, response);
             }, settings.speed);
         }
 
         // Reseteamos el elemento
 
-        this._resetElement(el, style, settings.speed);
+        MoFade._resetElement(el, style, settings.speed);
     },
 
     /**
@@ -109,11 +108,11 @@ const MoFade = {
 
         // Ajustamos la configuración
 
-        settings = this._setSettings(settings);
+        settings = MoFade._setSettings(settings);
 
         // Cogemos los estilos por defecto del elemento
 
-        let style = this._getStyles(el);
+        let style = MoFade._getStyles(el);
 
         // Preparamos el elemento para aparecer
 
@@ -139,13 +138,13 @@ const MoFade = {
             };
 
             setTimeout(function () {
-                func.call(this, response);
+                func.call(MoFade, response);
             }, settings.speed);
         }
 
         // Reseteamos el elemento
 
-        this._resetElement(el, style, settings.speed, true);
+        MoFade._resetElement(el, style, settings.speed, true);
     },
 
     _setSettings(settings) {

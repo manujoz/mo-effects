@@ -85,7 +85,7 @@ class AnimateClass {
                 el.style.transition = styleTrans || ``;
 
                 if (typeof fn === `function`) {
-                    fn.call(this);
+                    fn.call(el);
                 }
             }
         }, speed + 5);

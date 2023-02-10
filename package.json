@@ -1,10 +1,10 @@
 {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "mo-effects",
     "description": "Method and functions to add effects and animations to elements",
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/manujoz/mo-effects"
     },
     "author": {
         "name": "Manu Overa",

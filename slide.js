@@ -8,9 +8,9 @@ const MoSlide = {
      */
     toggle(el, settings = { speed: 400, effect: `ease` }, func = null) {
         if (el.offsetHeight === 0) {
-            this.down(el, settings, func);
+            MoSlide.down(el, settings, func);
         } else {
-            this.up(el, settings, func);
+            MoSlide.up(el, settings, func);
         }
     },
 
@@ -45,17 +45,17 @@ const MoSlide = {
 
         // Ajustamos la configuración
 
-        settings = this._setSettings(settings);
+        settings = MoSlide._setSettings(settings);
 
         // Cogemos los estilos por defecto del elemento
 
-        let style = this._getStyles(el);
+        let style = MoSlide._getStyles(el);
 
         // Cogemos el padding y los bordes
 
-        let padding = this._getPadding(el);
-        let margin = this._getMargin(el);
-        let border = this._getBorder(el);
+        let padding = MoSlide._getPadding(el);
+        let margin = MoSlide._getMargin(el);
+        let border = MoSlide._getBorder(el);
 
         // Cogemos el heigh del elemento
 
@@ -89,13 +89,13 @@ const MoSlide = {
             };
 
             setTimeout(function () {
-                func.call(this, response);
+                func.call(el, response);
             }, settings.speed);
         }
 
         // Reseteamos el elemento
 
-        this._resetElement(el, style, settings.speed, true);
+        MoSlide._resetElement(el, style, settings.speed, true);
     },
 
     /**
@@ -129,17 +129,17 @@ const MoSlide = {
 
         // Ajustamos la configuración
 
-        settings = this._setSettings(settings);
+        settings = MoSlide._setSettings(settings);
 
         // Cogemos los estilos por defecto del elemento
 
-        let style = this._getStyles(el);
+        let style = MoSlide._getStyles(el);
 
         // Cogemos el padding del elemento
 
-        let padding = this._getPadding(el);
-        let margin = this._getMargin(el);
-        let border = this._getBorder(el);
+        let padding = MoSlide._getPadding(el);
+        let margin = MoSlide._getMargin(el);
+        let border = MoSlide._getBorder(el);
 
         // Clonamos el elemento y cogemos el ancho computado si lo tiene
 
@@ -217,13 +217,13 @@ const MoSlide = {
             };
 
             setTimeout(function () {
-                func.call(this, response);
+                funcMoSlide(el, response);
             }, settings.speed);
         }
 
         // Reseteamos el elemento
 
-        this._resetElement(el, style, settings.speed);
+        MoSlide._resetElement(el, style, settings.speed);
     },
 
     /**

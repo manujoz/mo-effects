@@ -28,7 +28,7 @@ const MoSliderElement = {
      */
     init(el, settings, mainSlider = window) {
         // Registramos el elemento
-        this.register(el, settings, mainSlider);
+        MoSliderElement.register(el, settings, mainSlider);
     },
 
     register(el, settings, mainSlider) {
@@ -43,7 +43,7 @@ const MoSliderElement = {
             elHeight: el.offsetHeight,
             elWidth: el.offsetWidth,
             contenedor: el.parentElement,
-            settings: this._extend([this.defaults(), settings]),
+            settings: MoSliderElement._extend([MoSliderElement.defaults(), settings]),
             elStyle: null,
             topWinAnt: 0,
             scrollHandler: null,
@@ -57,11 +57,11 @@ const MoSliderElement = {
 
         // Ponemos a la escucha el componente
 
-        component.scrollHandler = function () {
-            this.scrolling(component, mainSlider);
-        }.bind(this);
+        component.scrollHandler = () => {
+            MoSliderElement.scrolling(component, mainSlider);
+        };
 
-        this.scrolling(component, mainSlider);
+        MoSliderElement.scrolling(component, mainSlider);
         mainSlider.addEventListener(`scroll`, component.scrollHandler);
     },
 
@@ -71,7 +71,7 @@ const MoSliderElement = {
         //	- - - - - - - - - - - - - - - - - - - - //
 
         if (component.element.offsetHeight === 0) {
-            this.destroy(component, mainSlider);
+            MoSliderElement.destroy(component, mainSlider);
             return false;
         }
 
@@ -104,7 +104,7 @@ const MoSliderElement = {
         //	SI CUMPLE LA CONDICIÓN
         //	- - - - - - - - - - - - - - - - - - - - //
 
-        if (this.condition(component)) {
+        if (MoSliderElement.condition(component)) {
             //  Variables de cálculo
             //	. . . . . . . . . . . . . . . . . . . .
 
@@ -122,13 +122,13 @@ const MoSliderElement = {
 
                 // Si baja el scroll
 
-                if (this.getDirection(component, mainSlider) === `baja`) {
+                if (MoSliderElement.getDirection(component, mainSlider) === `baja`) {
                     // Ponemos en fixed
 
                     if (topWindow > topeSup && component.element.style.position !== `fixed`) {
                         component.element.style.position = `fixed`;
                         component.element.style.top = marginTop + `px`;
-                        component.element.style.width = this.getWidth(component) + `px`;
+                        component.element.style.width = MoSliderElement.getWidth(component) + `px`;
                     }
 
                     // Fijamos abajo
@@ -136,17 +136,17 @@ const MoSliderElement = {
                     if (topWindow > topeInf && component.element.style.position === `fixed`) {
                         component.element.style.position = `absolute`;
                         component.element.style.top = topeInf - topeSup + contPaddingTop - contBorder + `px`;
-                        component.element.style.width = this.getWidth(component) + `px`;
+                        component.element.style.width = MoSliderElement.getWidth(component) + `px`;
                     }
                 }
 
                 // Si sube el scroll
 
-                if (this.getDirection(component, mainSlider) === `sube`) {
+                if (MoSliderElement.getDirection(component, mainSlider) === `sube`) {
                     // Ponemos el elemento en su posición inical
 
                     if (topWindow <= topeSup && component.element.style.position !== `relative`) {
-                        this.resetElement(component);
+                        MoSliderElement.resetElement(component);
                     }
 
                     // Ponemos fijo al subir
@@ -154,7 +154,7 @@ const MoSliderElement = {
                     if (topWindow <= topeInf && component.element.style.position === `absolute`) {
                         component.element.style.position = `fixed`;
                         component.element.style.top = marginTop + `px`;
-                        component.element.style.width = this.getWidth(component) + `px`;
+                        component.element.style.width = MoSliderElement.getWidth(component) + `px`;
                     }
                 }
             }
@@ -166,28 +166,28 @@ const MoSliderElement = {
                 diferencia = component.elHeight - height;
                 topeSup = topContenedor + diferencia + component.settings.marginStart;
                 topeInf = topeSup + component.contenedor.offsetHeight - component.elHeight;
-                topElement = this.getTop(component);
+                topElement = MoSliderElement.getTop(component);
 
                 // Si baja el scroll
 
-                if (this.getDirection(component, mainSlider) === `baja`) {
+                if (MoSliderElement.getDirection(component, mainSlider) === `baja`) {
                     // Ponemos absolute
 
                     if (topElement === marginTop && component.element.style.position === `fixed`) {
                         component.element.style.position = `absolute`;
                         component.element.style.top = topWindow - topContenedor + `px`;
-                        component.element.style.width = this.getWidth(component) + `px`;
+                        component.element.style.width = MoSliderElement.getWidth(component) + `px`;
                     }
 
                     // Ponemos fixed
 
                     if (
-                        topWindow > topeSup + contPaddingTop + this.getTop(component) &&
+                        topWindow > topeSup + contPaddingTop + MoSliderElement.getTop(component) &&
                         component.element.style.position !== `fixed`
                     ) {
                         component.element.style.position = `fixed`;
                         component.element.style.top = marginTop - diferencia - component.settings.marginStart + `px`;
-                        component.element.style.width = this.getWidth(component) + `px`;
+                        component.element.style.width = MoSliderElement.getWidth(component) + `px`;
                     }
 
                     // Fijamos abajo el elemento
@@ -195,19 +195,19 @@ const MoSliderElement = {
                     if (topWindow > topeInf - contPaddingTop && component.element.style.position === `fixed`) {
                         component.element.style.position = `absolute`;
                         component.element.style.top = topeInf - topeSup - contPaddingTop - contBorder + `px`;
-                        component.element.style.width = this.getWidth(component) + `px`;
+                        component.element.style.width = MoSliderElement.getWidth(component) + `px`;
                     }
                 }
 
                 // Si sube el scroll
 
-                if (this.getDirection(component, mainSlider) === `sube`) {
+                if (MoSliderElement.getDirection(component, mainSlider) === `sube`) {
                     // Ponemos en absolute
 
                     if (topElement !== marginTop && component.element.style.position === `fixed`) {
                         component.element.style.position = `absolute`;
                         component.element.style.top = topWindow - topContenedor - diferencia + `px`;
-                        component.element.style.width = this.getWidth(component) + `px`;
+                        component.element.style.width = MoSliderElement.getWidth(component) + `px`;
                     }
 
                     // Ponemos fijo el elemento
@@ -215,13 +215,13 @@ const MoSliderElement = {
                     if (topWindow < topContenedor + topElement && component.element.style.position === `absolute`) {
                         component.element.style.position = `fixed`;
                         component.element.style.top = marginTop + `px`;
-                        component.element.style.width = this.getWidth(component) + `px`;
+                        component.element.style.width = MoSliderElement.getWidth(component) + `px`;
                     }
 
                     // Ponemos el elemento en su posción inicial
 
                     if (topWindow < topContenedor + contPaddingTop && component.element.style.position !== `relative`) {
-                        this.resetElement(component);
+                        MoSliderElement.resetElement(component);
                     }
                 }
             }
@@ -231,8 +231,8 @@ const MoSliderElement = {
         //	SI NO CUMPLE LA CONDICIÓN
         //	- - - - - - - - - - - - - - - - - - - - //
 
-        if (!this.condition(component)) {
-            this.resetElement(component);
+        if (!MoSliderElement.condition(component)) {
+            MoSliderElement.resetElement(component);
         }
 
         // Ponemos el top anterior
