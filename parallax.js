@@ -34,28 +34,28 @@ const MoParallax = {
     init(el, settings = null) {
         // Ajsutamos compatibilidad con versión anterior.
 
-        settings = this._compatibilty(settings);
+        settings = MoParallax._compatibilty(settings);
 
         // Extenemdos la configuración por defecto
 
-        settings = this._extends([this._defaults(), settings]);
+        settings = MoParallax._extends([MoParallax._defaults(), settings]);
 
         // Asignamos los límites
 
-        settings = this._setToppers(el, settings);
+        settings = MoParallax._setToppers(el, settings);
 
         // Si la animación es sobre el fondo, se prepara la capa.
 
         if (settings.property == `background`) {
             settings.direction = `down`;
-            let bgPrep = this._prepareBackground(el, settings);
+            let bgPrep = MoParallax._prepareBackground(el, settings);
             el = bgPrep.el;
             settings = bgPrep.settings;
         }
 
         // Registra el componente
 
-        this._register(el, settings);
+        MoParallax._register(el, settings);
     },
 
     /**
@@ -328,11 +328,11 @@ const MoParallax = {
 
         if (`onscroll` in document.documentElement) {
             component.scrollHandler = () => {
-                this._scrolling(component);
+                MoParallax._scrolling(component);
             };
 
-            this._reset(component);
-            this._scrolling(component);
+            MoParallax._reset(component);
+            MoParallax._scrolling(component);
             window.addEventListener(`scroll`, component.scrollHandler);
         }
     },
@@ -348,7 +348,7 @@ const MoParallax = {
         // Detenemos el listener si ya no existe el elemento
 
         if (!document.body.contains(component.el)) {
-            this._destroy(component);
+            MoParallax._destroy(component);
             return false;
         }
 
@@ -356,7 +356,7 @@ const MoParallax = {
 
         if (window.scrollY <= component.settings.topStart) {
             if (component.animated) {
-                this._reset(component);
+                MoParallax._reset(component);
             }
             return false;
         }
@@ -374,7 +374,7 @@ const MoParallax = {
         // Animamos el componente
 
         window.requestAnimationFrame(() => {
-            this._animate(component);
+            MoParallax._animate(component);
         });
     },
 

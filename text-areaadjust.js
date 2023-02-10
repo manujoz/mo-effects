@@ -29,7 +29,7 @@ const MoTextareaAdjust = {
     init(el, settings) {
         // Registramos el textarea
 
-        this.register(el, settings);
+        MoTextareaAdjust.register(el, settings);
     },
 
     register(el, settings) {
@@ -37,7 +37,7 @@ const MoTextareaAdjust = {
 
         let element = {
             textarea: el,
-            settings: this._extend([this.defaults(), settings]),
+            settings: MoTextareaAdjust._extend([MoTextareaAdjust.defaults(), settings]),
             eventHandler: null,
             eventRemove: null,
         };
@@ -46,7 +46,7 @@ const MoTextareaAdjust = {
 
         element.settings.defHeight = window.getComputedStyle(element.textarea, null).height;
         element.settings.height = element.textarea.offsetHeight;
-        element.settings.padding = this.getPadding(element.textarea);
+        element.settings.padding = MoTextareaAdjust.getPadding(element.textarea);
 
         // Asignamos estilos específicos
 
@@ -56,11 +56,11 @@ const MoTextareaAdjust = {
         // Ponemos a la escucha el elemento
 
         element.eventHandler = () => {
-            this.adaptar(element);
+            MoTextareaAdjust.adaptar(element);
         };
 
         element.eventRemove = (ev) => {
-            this._remove(element, ev);
+            MoTextareaAdjust._remove(element, ev);
         };
 
         element.textarea.addEventListener(`keyup`, element.eventHandler);
@@ -98,7 +98,7 @@ const MoTextareaAdjust = {
 
         if (element.textarea.value) {
             setTimeout(() => {
-                this.adaptar(element, true);
+                MoTextareaAdjust.adaptar(element, true);
             }, 100);
         }
     },
@@ -142,7 +142,7 @@ const MoTextareaAdjust = {
             textarea.value = ``;
         } else if (ultChar !== `<br/>`) {
             textarea.value = textarea.value + `\n`;
-            this.rango(textarea, textarea.value.length - 1);
+            MoTextareaAdjust.rango(textarea, textarea.value.length - 1);
         }
 
         if (load) {
