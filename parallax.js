@@ -17,106 +17,102 @@
  * 		property: 	(background|element)	=>	Inidica si queremos el efecto sobre un fondo o un elemento.
  * 		direction:	(down|up)				=>	La dirección que queremos que tenga el efecto.
  * 		speed:		(1-20)					=>	La velocidad de movimiento del elemento respecto al scroll.
- * 		bgColor:	(cssColor)				=>	Para los fondos el color de fondo que queremos.
+ * 		backgroundColor:	(cssColor)				=>	Para los fondos el color de fondo que queremos.
  * }
  *
  * Ej.: Polymer.Parallax( el, { property: "background", direction: "up", speed: 6 });
  */
+/** @typedef {import("./types/parallax").MoParallaxSettings MoParallaxSettings */
+/** @typedef {import("./types/parallax").MoParallaxInternalSettings MoParallaxInternalSettings */
+/** @typedef {import("./types/parallax").MoParallaxComponent MoParallaxComponent */
+
 const MoParallax = {
     /**
      * @method	init
      *
      * Inicia el efecto Parallax en algún elemento o fondo de la página.
      *
-     * @param	{HTMLElement} el			El elemento sobre el que se va a realizar el efecto Parallax.
-     * @param 	{{property: "background"|"element", direction: "down"|"up", speed: number, bgColor: string}} settings Configuración del efecto
+     * @param {HTMLElement} el Element over make parallax effect.
+     * @param {MoParallaxSettings} settings Settings
+     * @param {HTMLElement} elScrollable Element to listen scroll, default window
      */
-    init(el, settings = null) {
-        // Ajsutamos compatibilidad con versión anterior.
+    async init(el, settings = null, elScrollable = window) {
+        // Check duplicate
+        if (MoParallax._checkHasEffect(el) || document.documentElement.onscroll) {
+            return;
+        }
 
-        settings = MoParallax._compatibilty(settings);
+        // Extendemdos la configuración por defecto
+        settings = !settings ? MoParallax._defaults() : { ...MoParallax._defaults(), ...settings };
 
-        // Extenemdos la configuración por defecto
+        // If property is background, set control attribute to element
+        if (settings.property === `background`) {
+            el.setAttribute(`mo-parallax`, ``);
+        }
 
-        settings = MoParallax._extends([MoParallax._defaults(), settings]);
+        // Set speed
+        settings = MoParallax._setSpeed(settings);
 
         // Asignamos los límites
-
-        settings = MoParallax._setToppers(el, settings);
+        settings = MoParallax._setRealTop(el, settings);
 
         // Si la animación es sobre el fondo, se prepara la capa.
-
         if (settings.property == `background`) {
-            settings.direction = `down`;
-            let bgPrep = MoParallax._prepareBackground(el, settings);
+            const bgPrep = await MoParallax._prepareBackground(el, settings);
             el = bgPrep.el;
             settings = bgPrep.settings;
         }
 
         // Registra el componente
 
-        MoParallax._register(el, settings);
+        MoParallax._register(el, settings, elScrollable);
     },
 
     /**
-     * @method	_compatibilty
+     * @method	_animate
      *
-     * Crea compatibilidad con la versión anterior del efecto Parallax adaptando las antiguas propiedades
-     * a las nuevas establecidas en esta versión.
+     * Anima el componente cuando se hace scroll.
      *
-     * @param	{object}	settings	Configuración asignada al declarar el efecto.
+     * @param	{MoParallaxComponent}	component	Componente registrado sobre el que se aplica el efecto Parallax.
      */
-    _compatibilty(settings) {
-        if (!settings) {
-            return null;
-        }
+    _animate(component, elScrollable) {
+        const parent = component.el.parentNode ?? component.el.host;
+        const scrollTop = elScrollable === window ? window.scrollY : elScrollable.scrollTop;
 
-        let newSettings = {};
-
-        // Si tiene cssProperty
-
-        if (settings.cssProperty) {
-            if (settings.cssProperty == `background-position`) {
-                newSettings.property = `background`;
+        if (component.settings.direction == `down`) {
+            let top = 0;
+            let parentTop = parent.getBoundingClientRect().top;
+            if (component.settings.realTop > window.innerHeight) {
+                top = ((parentTop + parent.offsetHeight - window.innerHeight) * -1) / component.settings.speed;
             } else {
-                newSettings.property = `element`;
+                top = scrollTop / component.settings.speed;
             }
+            component.el.style.transform = `translateY(${top}px)`;
         }
 
-        // Si tiene parallaxDir
+        if (component.settings.direction == `up`) {
+            let top = 0;
 
-        if (settings.parallaxDir) {
-            newSettings.direction = settings.parallaxDir;
+            let parentTop = parent.getBoundingClientRect().top;
+            if (component.settings.realTop > window.innerHeight) {
+                top = (parentTop + parent.offsetHeight - window.innerHeight) / component.settings.speed;
+            } else {
+                top = (scrollTop * -1) / component.settings.speed;
+            }
+            component.el.style.transform = `translateY(${top}px)`;
         }
+    },
 
-        // Si tiene topLimit
-
-        if (settings.topLimit || settings.topEnd) {
-            newSettings.topEnd = null;
-        }
-
-        // Asignamos valores correctos si vienen
-
-        if (settings.property) {
-            newSettings.property = settings.property;
-        }
-        if (settings.direction) {
-            newSettings.direction = settings.direction;
-        }
-        if (settings.speed) {
-            newSettings.speed = settings.speed;
-        }
-        if (settings.topStart) {
-            newSettings.topStart = null;
-        }
-        if (settings.topEnd) {
-            newSettings.topEnd = settings.topEnd;
-        }
-        if (settings.bgColor) {
-            newSettings.bgColor = settings.bgColor;
+    /**
+     *
+     * @param {HTMLElement} el
+     */
+    _checkHasEffect(el) {
+        if (el.hasAttribute(`mo-parallax`)) {
+            return true;
         }
 
-        return newSettings;
+        return false;
     },
 
     /**
@@ -125,43 +121,43 @@ const MoParallax = {
      * Establece los valores por defecto de la clase Parallax por si no se han establecido
      * al declararlos, se obtendrán estos valores.
      *
-     * **property**		=> 	La propiedad sobre la que se va a realizar el efecto (background|element),
-     * 						si nos referimos a una imagen de fondo o a un elemento HTML simple.
-     * **direction**	=>	La dirección que tomará el efecto (down,up,left,rigth).
-     * **speed**		=>	La velocidad del efecto.
-     * **topStart**		=>	El top del scroll donde empezará el efecto.
-     * **topEnd**		=>	El top del scroll donde terminará el efecto.
-     * **initialTop**	=>	El top donde el componente empieza movimiento con respecto a la pantalla
+     * @returns {MoParallaxInternalSettings}
      */
     _defaults() {
         return {
             property: `background`,
             direction: `down`,
-            speed: 5,
-            bgColor: `transparent`,
-            topStart: null,
-            topEnd: null,
-            initialTop: 0,
+            speed: 13,
+            backgroundColor: `transparent`,
+            realTop: 0,
         };
     },
 
     /**
-     * @method	_extends
+     * @method	_destroy
      *
-     * Se asigna la configuración por defecto en caso de que ésta no venga dada al declarar el efecto.
+     * Destruye el listeners si el componente no se encuentra en el documento.
      *
-     * @param	{array}	objs	Array con la configuración por defecto y la asignada al declarar el efecto.
+     * @param {MoParallaxComponent}	component Componente que se va a destruir del listener.
+     * @param {HTMLElement} elScrollable
      */
-    _extends(objs) {
-        let newObj = {};
+    _destroy(component, elScrollable) {
+        elScrollable.removeEventListener(`scroll`, component.scrollHandler);
+        return false;
+    },
 
-        for (let i = 0; i < objs.length; i++) {
-            for (let prop in objs[i]) {
-                newObj[prop] = objs[i][prop];
-            }
+    /**
+     *
+     * @param {HTMLElement} el
+     */
+    _getParentBodyRef(el) {
+        let parent = el.parentNode;
+
+        while (!document.body.contains(parent)) {
+            parent = parent.parentNode ?? parent.host;
         }
 
-        return newObj;
+        return parent;
     },
 
     /**
@@ -169,132 +165,47 @@ const MoParallax = {
      *
      * Prepara la capa para la animación sobre el fondo de un elemento.
      *
-     * @param	{object}	el		Elemento sobre el que se va a realizar el efecto Parallax.
+     * @param {HTMLElement}	el		Elemento sobre el que se va a realizar el efecto Parallax.
+     * @param {MoParallaxSettings} settings
      */
     _prepareBackground(el, settings) {
-        // Obtemnemos los estilos computados de los elementos.
+        return new Promise((resolve) => {
+            // Obtemnemos los estilos computados de los elementos.
+            const compStyles = window.getComputedStyle(el, null);
 
-        let compStyles = window.getComputedStyle(el, null);
-
-        let image = compStyles.getPropertyValue(`background-image`);
-        let position = compStyles.getPropertyValue(`background-position`);
-        let repeat = compStyles.getPropertyValue(`background-repeat`);
-        let size = compStyles.getPropertyValue(`background-size`);
-        let attachment = compStyles.getPropertyValue(`background-attachment`);
-
-        // Ajustamos los tamaños
-
-        let adjusts = {
-            top: 0,
-            left: 0,
-            width: `100%`,
-            height: `100%`,
-        };
-
-        if (el.offsetHeight < window.innerHeight / 2) {
-            // Ajustamos la posición y el tamaño nuevos.
-
-            let percent = 100 - (el.offsetHeight * 100) / (window.innerHeight / 2) + 10;
-            adjusts.top = `-` + percent / 2 + `%`;
-            adjusts.left = `-` + percent / 2 + `%`;
-            adjusts.width = 100 + percent + `%`;
-            adjusts.height = 100 + percent + `%`;
-
-            // Ajustamos el nuevo initialTop
-
-            settings.initialTop -= ((percent * el.offsetHeight) / 100) * 2;
-        }
-
-        // Creamos un nuevo elemento con los estilos computados.
-
-        let div = document.createElement(`DIV`);
-        div.style.position = `absolute`;
-        div.style.top = adjusts.top;
-        div.style.left = adjusts.left;
-        div.style.width = adjusts.width;
-        div.style.height = adjusts.height;
-        div.style.backgroundImage = image ? image : ``;
-        div.style.backgroundPosition = position ? position : ``;
-        div.style.backgroundRepeat = repeat ? repeat : ``;
-        div.style.backgroundSize = size ? size : ``;
-        div.style.backgroundAttachment = attachment ? attachment : ``;
-
-        // Itroducimos el nuevo elemento.
-
-        if (el.children[0]) {
-            el.insertBefore(div, el.children[0]);
-        } else {
-            el.append(div);
-        }
-
-        // Eliminamos los estilos computados del elemento original.
-
-        el.style.background = settings.bgColor;
-        el.style.overflow = `hidden`;
-
-        // Devolvemos el elemnto que vamos a animar
-
-        return {
-            el: div,
-            settings: settings,
-        };
-    },
-
-    /**
-     * @method	_setToppers
-     *
-     * Asigna los límites en los que se va a realizar el efecto
-     */
-    _setToppers(el, settings) {
-        // Calculamos el topStart y el initialTop
-
-        if (!settings.topStart) {
-            settings.topStart = 0;
-
-            if (settings.property == `background`) {
-                let diff = 0;
-                if (el.getBoundingClientRect().top + window.scrollY > window.innerHeight) {
-                    settings.topStart = el.getBoundingClientRect().top + window.scrollY - window.innerHeight;
-                    diff = el.getBoundingClientRect().top + window.scrollY - window.innerHeight;
-                }
-
-                if (el.getBoundingClientRect().top + window.scrollY > 0) {
-                    settings.initialTop = el.getBoundingClientRect().top + window.scrollY - diff;
-                }
-            } else {
-                let diff = 0;
-                let parent = el.parentElement;
-                if (parent.getBoundingClientRect().top + window.scrollY > window.innerHeight) {
-                    settings.topStart = parent.getBoundingClientRect().top + window.scrollY - window.innerHeight;
-                    if (settings.direction == `down`) {
-                        diff = parent.getBoundingClientRect().top + window.scrollY - window.innerHeight;
-                    } else {
-                        diff = parent.getBoundingClientRect().top + window.scrollY - window.innerHeight - 126;
-                    }
-                }
-
-                if (parent.getBoundingClientRect().top + window.scrollY > 0) {
-                    if (settings.direction == `down`) {
-                        settings.initialTop = parent.getBoundingClientRect().top + window.scrollY - diff;
-                    } else {
-                        settings.initialTop = parent.getBoundingClientRect().top + window.scrollY + diff;
-                    }
-                }
+            const image = compStyles.getPropertyValue(`background-image`)?.split(`url("`)[1]?.split(`")`)[0];
+            if (!image) {
+                return;
             }
-        }
 
-        // Calculamos el topEnd
+            // Eliminamos los estilos computados del elemento original.
+            el.style.background = settings.backgroundColor;
+            el.style.overflow = `hidden`;
 
-        if (!settings.topEnd) {
-            if (settings.property == `background`) {
-                settings.topEnd = el.getBoundingClientRect().top + window.scrollY + el.offsetHeight;
-            } else {
-                settings.topEnd =
-                    el.parentElement.getBoundingClientRect().top + window.scrollY + el.parentElement.offsetHeight;
-            }
-        }
+            // Creamos la imagen
+            const img = new Image();
+            img.src = image;
+            img.style.position = `absolute`;
+            img.onload = () => {
+                let w = parseInt(el.offsetWidth);
+                let h = parseInt((w * img.naturalHeight) / img.naturalWidth);
 
-        return settings;
+                if (h < el.offsetHeight) {
+                    h = parseInt(el.offsetHeight + 300);
+                    w = parseInt((h * img.naturalWidth) / img.naturalHeight);
+                }
+
+                img.style.top = `${((h - el.offsetHeight) / 2) * -1}px`;
+                img.style.left = `0px`;
+                img.style.width = `${w}px`;
+                img.style.height = `${h}px`;
+
+                // Itroducimos el nuevo elemento.
+                el.append(img);
+
+                resolve({ el: img, settings: settings });
+            };
+        });
     },
 
     /**
@@ -302,107 +213,38 @@ const MoParallax = {
      *
      * Registra el elemento y su configuración para realizar el efecto Parallax.
      *
-     * @param	{object}	el			El elemento sobre el que se va a realizar el efecto Parallax.
-     * @param 	{object}	settings	La configuración que tendrá el efecto, será un objeto con las
-     * 									mismas propiedades que _defaults().
+     * @param {HTMLElement}	el Elemento sobre el que se va a realizar el efecto Parallax.
+     * @param {MoParallaxSettings} settings
+     * @param {HTMLElement} elScrollable
      */
-    _register(el, settings) {
-        // Se comprueba si tiene el atributo aw-parallax, si es el caso se detiene, de lo contrario se asigna.
-
-        if (el.hasAttribute(`aw-parallax`)) {
+    _register(el, settings, elScrollable) {
+        // Se comprueba si tiene el atributo mo-parallax, si es el caso se detiene, de lo contrario se asigna.
+        if (el.hasAttribute(`mo-parallax`)) {
             return false;
         } else {
-            el.setAttribute(`aw-parallax`, ``);
+            el.setAttribute(`mo-parallax`, ``);
         }
+
+        // Set default translate
+        el.style.transform = `translateY(0px)`;
 
         // Creamos el componente a registrar.
 
         let component = {
             el: el,
+            parentBodyRef: MoParallax._getParentBodyRef(el),
             settings: settings,
             animated: false,
             scrollHandler: null,
         };
 
-        // Si el navegador permite el evento "onscroll" animamos.
+        component.scrollHandler = () => {
+            MoParallax._scrolling(component, elScrollable);
+        };
 
-        if (`onscroll` in document.documentElement) {
-            component.scrollHandler = () => {
-                MoParallax._scrolling(component);
-            };
-
-            MoParallax._reset(component);
-            MoParallax._scrolling(component);
-            window.addEventListener(`scroll`, component.scrollHandler);
-        }
-    },
-
-    /**
-     * @method	_scrolling
-     *
-     * Realiza el efecto al hacer scroll en la ventana.
-     *
-     * @param	{object}	component	Componente registrado sobre el que se aplica el efecto Parallax.
-     */
-    _scrolling(component) {
-        // Detenemos el listener si ya no existe el elemento
-
-        if (!document.body.contains(component.el)) {
-            MoParallax._destroy(component);
-            return false;
-        }
-
-        // Reseteamos la animación si llega al tope
-
-        if (window.scrollY <= component.settings.topStart) {
-            if (component.animated) {
-                MoParallax._reset(component);
-            }
-            return false;
-        }
-
-        // Detenemos la función si hay topEnd y supera el scrollY
-
-        if (component.settings.topEnd && window.scrollY > component.settings.topEnd) {
-            return false;
-        }
-
-        // Marcamos el componente como animado
-
-        component.animated = true;
-
-        // Animamos el componente
-
-        window.requestAnimationFrame(() => {
-            MoParallax._animate(component);
-        });
-    },
-
-    /**
-     * @method	_animate
-     *
-     * Anima el componente cuando se hace scroll.
-     *
-     * @param	{object}	component	Componente registrado sobre el que se aplica el efecto Parallax.
-     */
-    _animate(component) {
-        if (component.settings.direction == `down`) {
-            component.el.style.transform =
-                `translateY(` +
-                (window.scrollY - component.settings.initialTop - component.settings.topStart) /
-                    component.settings.speed +
-                `px)`;
-        }
-
-        if (component.settings.direction == `up`) {
-            component.el.style.transform =
-                `translateY(` +
-                -(
-                    (window.scrollY - component.settings.initialTop - component.settings.topStart) /
-                    component.settings.speed
-                ) +
-                `px)`;
-        }
+        // MoParallax._reset(component);
+        MoParallax._scrolling(component, elScrollable);
+        elScrollable.addEventListener(`scroll`, component.scrollHandler);
     },
 
     /**
@@ -414,30 +256,96 @@ const MoParallax = {
      */
     _reset(component) {
         component.animated = false;
-        if (component.settings.direction == `down`) {
-            component.el.style.transform =
-                `translateY(` +
-                (component.settings.topStart - component.settings.initialTop) / component.settings.speed +
-                `px)`;
-        } else {
-            component.el.style.transform =
-                `translateY(` +
-                (component.settings.topStart + component.settings.initialTop) / component.settings.speed +
-                `px)`;
-        }
+        component.el.style.transform = `translateY(0px)`;
     },
 
     /**
-     * @method	_destroy
-     *
-     * Destruye el listeners si el componente no se encuentra en el documento.
-     *
-     * @param	{object}	component	Componente que se va a destruir del listener.
+     * Set speed of effect
+     * @param {MoParallaxSettings} settings
      */
-    _destroy(component) {
-        window.removeEventListener(`scroll`, component.scrollHandler);
-        return false;
+    _setSpeed(settings) {
+        if (isNaN(settings.speed)) {
+            settings.speed = 8;
+        }
+        let min = 1;
+        let max = 15;
+        if (settings.speed > max) {
+            settings.speed = max;
+        }
+
+        if (settings.speed < min) {
+            settings.speed = min;
+        }
+
+        max++;
+        settings.speed = max - settings.speed;
+        return settings;
+    },
+
+    /**
+     * @param {HTMLElement} el
+     */
+    _getRealTop(el) {
+        let top = el.offsetTop;
+        /** @type {HTMLElement} */
+        let parent = el.parentNode ?? el.host;
+
+        while (parent) {
+            if (!isNaN(parent.offsetTop)) {
+                top += parent.offsetTop;
+            }
+            parent = parent.parentNode ?? parent.host;
+        }
+
+        return top;
+    },
+
+    /**
+     * @param {HTMLElement}	el
+     * @param {MoParallaxInternalSettings} settings
+     */
+    _setRealTop(el, settings) {
+        settings.realTop = MoParallax._getRealTop(el);
+
+        return settings;
+    },
+
+    /**
+     * @method	_scrolling
+     *
+     * Realiza el efecto al hacer scroll en la ventana.
+     *
+     * @param	{MoParallaxComponent}	component	Componente registrado sobre el que se aplica el efecto Parallax.
+     * @param {HTMLElement} elScrollable
+     */
+    _scrolling(component, elScrollable) {
+        if (!elScrollable) {
+            return;
+        }
+        // Detenemos el listener si ya no existe el elemento
+        if (!document.body.contains(component.parentBodyRef)) {
+            MoParallax._destroy(component, elScrollable);
+            return;
+        }
+
+        // Detenemos la función si no es visible
+        const parent = component.el.parentNode ?? component.el.host;
+        const isVisible = parent.getBoundingClientRect().top < window.innerHeight;
+        if (!isVisible) {
+            return;
+        }
+
+        // Marcamos el componente como animado
+
+        component.animated = true;
+
+        // Animamos el componente
+
+        window.requestAnimationFrame(() => {
+            MoParallax._animate(component, elScrollable);
+        });
     },
 };
 
-export default MoParallax.init;
+const init = MoParallax.init;
+export default init;
